@@ -29,15 +29,20 @@ public class AwsCognitoJwtProcessorFactory {
 	public ConfigurableJWTProcessor<SecurityContext> configurableJWTProcessor() throws MalformedURLException {
 
 		ConfigurableJWTProcessor<SecurityContext> jwtProcessor= new DefaultJWTProcessor<SecurityContext>();
-		
-		ResourceRetriever resourceRetriever = new DefaultResourceRetriever(jwtConfiguration.getConnectionTimeout(), jwtConfiguration.getReadTimeout());
-		URL jwkSetURL= new URL(jwtConfiguration.getJwkUrl()); //https://cognito-idp.{region}.amazonaws.com/{userPoolId}/.well-known/jwks.json
-		JWKSource<SecurityContext> keySource= new RemoteJWKSet<SecurityContext>(jwkSetURL, resourceRetriever);		
+
+		JWKSource<SecurityContext> keySource = createJsonWebKeySource();	
 		JWSKeySelector<SecurityContext> keySelector= new JWSVerificationKeySelector<SecurityContext>(RS256, keySource);
 		jwtProcessor.setJWSKeySelector(keySelector);
 		
 		return jwtProcessor;
 		
+	}
+	
+	private JWKSource<SecurityContext> createJsonWebKeySource() throws MalformedURLException {
+		ResourceRetriever resourceRetriever = new DefaultResourceRetriever(jwtConfiguration.getConnectionTimeout(), jwtConfiguration.getReadTimeout());
+		URL jwkSetURL= new URL(jwtConfiguration.getJwkUrl()); //https://cognito-idp.{region}.amazonaws.com/{userPoolId}/.well-known/jwks.json
+		JWKSource<SecurityContext> keySource= new RemoteJWKSet<SecurityContext>(jwkSetURL, resourceRetriever);
+		return keySource;
 	}
 
 }
